@@ -1,24 +1,33 @@
 // src/lib/firebase/admin.ts
-// SERVER-SIDE ONLY — never import this in client components
-import { App, cert, getApps, initializeApp } from "firebase-admin/app";
+import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-let adminApp: App;
+function getAdminApp() {
+  if (getApps().length > 0) {
+    return getApps()[0];
+  }
 
-function getAdminApp(): App {
-  if (getApps().length > 0) return getApps()[0];
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
 
-  adminApp = initializeApp({
+  if (!privateKey) {
+    throw new Error(
+      "FIREBASE_ADMIN_PRIVATE_KEY is missing in .env.local"
+    );
+  }
+
+  return initializeApp({
     credential: cert({
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL!,
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+
+      // FIXED HERE
+      privateKey: privateKey.replace(/\\n/g, "\n"),
     }),
   });
-
-  return adminApp;
 }
 
-export const adminAuth = getAuth(getAdminApp());
-export const adminDb = getFirestore(getAdminApp());
+const adminApp = getAdminApp();
+
+export const adminAuth = getAuth(adminApp);
+export const adminDb = getFirestore(adminApp);
