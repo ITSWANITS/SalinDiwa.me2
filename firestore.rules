@@ -1,0 +1,31 @@
+// firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users can only read/write their own document
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Daily words: publicly readable, admin-write only
+    match /daily_words/{date} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Guesses: user can create their own
+    match /guesses/{guessId} {
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // Admin-only collections
+    match /admin_logs/{doc} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}

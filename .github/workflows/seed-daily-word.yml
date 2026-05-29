@@ -1,0 +1,38 @@
+# .github/workflows/seed-daily-word.yml
+name: Seed Daily Word
+
+on:
+  schedule:
+    # Run at 12:00 AM Philippine Time (UTC+8) = 16:00 UTC previous day
+    - cron: "0 16 * * *"
+  workflow_dispatch:
+    inputs:
+      word:
+        description: "Filipino word to seed"
+        required: true
+      date:
+        description: "Date (YYYY-MM-DD)"
+        required: true
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - run: npm ci
+
+      - name: Seed daily word
+        env:
+          FIREBASE_ADMIN_PROJECT_ID: ${{ secrets.FIREBASE_ADMIN_PROJECT_ID }}
+          FIREBASE_ADMIN_CLIENT_EMAIL: ${{ secrets.FIREBASE_ADMIN_CLIENT_EMAIL }}
+          FIREBASE_ADMIN_PRIVATE_KEY: ${{ secrets.FIREBASE_ADMIN_PRIVATE_KEY }}
+          WORD_SALT: ${{ secrets.WORD_SALT }}
+        run: |
+          npx tsx scripts/seedDailyWord.ts \
+            --word=${{ github.event.inputs.word || 'diwa' }} \
+            --date=$(date -u -d '+8 hours' +%Y-%m-%d)
