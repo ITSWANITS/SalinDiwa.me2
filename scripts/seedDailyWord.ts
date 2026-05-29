@@ -1,17 +1,16 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 import { adminDb } from "../lib/firebase/admin";
 import { hashWord } from "../lib/wordService";
 
 const args = process.argv.slice(2);
 
-const wordArg = args.find((a) => a.startsWith("--word="));
-const dateArg = args.find((a) => a.startsWith("--date="));
+const word = args.find((a) => a.startsWith("--word="))?.replace("--word=", "");
+const date = args.find((a) => a.startsWith("--date="))?.replace("--date=", "");
 
-if (!wordArg || !dateArg) {
+if (!word || !date) {
   throw new Error("Missing arguments");
 }
-
-const word = wordArg.replace("--word=", "");
-const date = dateArg.replace("--date=", "");
 
 async function main() {
   await adminDb.collection("daily_words").doc(date).set({
@@ -24,4 +23,4 @@ async function main() {
   console.log("Seed successful");
 }
 
-main();
+main().catch(console.error);
