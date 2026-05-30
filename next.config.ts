@@ -1,25 +1,15 @@
-// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Security headers
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          // Prevent clickjacking
           { key: "X-Frame-Options", value: "DENY" },
-          // Prevent MIME sniffing
           { key: "X-Content-Type-Options", value: "nosniff" },
-          // Referrer policy
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Permissions policy
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          // Content Security Policy
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           {
             key: "Content-Security-Policy",
             value: [
@@ -35,11 +25,6 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
-  },
-
-  // Reduce bundle size
-  experimental: {
-    optimizePackageImports: ["firebase"],
   },
 };
 
